@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,6 +20,8 @@ import java.util.Locale;
 
 public class ShoppingListActivity extends AppCompatActivity {
 
+    public static final String FILENAME = "items.txt";
+    public static final byte[] MAX_BYTES = new byte[10000];
     private ListView list;
     private ArrayList<ShoppingItem> items; // Model de dades (array de ShoppingItem)
     private ShoppingListAdapter adapter;
@@ -26,16 +29,43 @@ public class ShoppingListActivity extends AppCompatActivity {
 
     private void writeItemList(){//agafar els items i guardar-los en un fitxer
         try {
-            FileOutputStream fos = openFileOutput("items.txt", Context.MODE_PRIVATE);//en privat només te permís d'accedir als fitxers la pròpia app
+            FileOutputStream fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);//en privat només te permís d'accedir als fitxers la pròpia app
             for (ShoppingItem item:items) {//per cada shoppingitem en l'array items
                 String line = String.format("%s;%b\n", item.getText(), item.isChecked());
                 fos.write(line.getBytes());
             }
+            fos.close();//tanquem el fitxer
         } catch (FileNotFoundException e) {
-            //TODO: mirar què fem en el cas que el fitxer no exixteixi
+
         } catch (IOException e) {
             Toast.makeText(this, "No es pot escriure el fitxer", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private boolean readItemList(){
+        items= new ArrayList<>();//resetejem arraylist
+        try {
+            FileInputStream fis = openFileInput(FILENAME);
+            byte[] buffer = MAX_BYTES;//10kb - el que pot llegir de cop
+            int nread = fis.read(buffer);
+            if (nread>0){//si ha llegit més de 0 bytes
+                String content = new String(buffer,0,nread);//string a partir del buffer començant des de 0 i acabant a nread bytes
+                String[] lines = content.split("\n");//separa per salts de linia
+                for(String line:lines){
+                    if(!line.isEmpty()){
+                        String[] parts = line.split(";");
+                        items.add(new ShoppingItem(parts[0], (parts[1].equals("true"))));
+                    }
+                }
+            fis.close();
+            }
+        } catch (FileNotFoundException e) {
+            return true;
+        } catch (IOException e) {
+            Toast.makeText(this, "No es pot escriure el fitxer", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -49,11 +79,9 @@ public class ShoppingListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping_list);
 
-        // Omplim el model de dades
-        items = new ArrayList<>();
-        items.add(new ShoppingItem("Patates", true));
-        items.add(new ShoppingItem("Paper WC"));
-        items.add(new ShoppingItem("Ketchup"));
+        if(!readItemList()){
+            Toast.makeText(this, "Benvingut al ShoppingList(TM)", Toast.LENGTH_SHORT).show();
+        }
 
         list = (ListView) findViewById(R.id.list);
         new_item = (EditText) findViewById(R.id.new_item);
