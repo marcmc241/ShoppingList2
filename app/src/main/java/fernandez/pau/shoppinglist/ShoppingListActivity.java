@@ -16,6 +16,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Locale;
 
 public class ShoppingListActivity extends AppCompatActivity {
@@ -104,6 +107,18 @@ public class ShoppingListActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+            //exemple d'ús de date
+        Date date = new Date();//data en ms des de 1970 (en base a l'instant actual del dispositiu)
+        Calendar calendar = new GregorianCalendar();//creem un calendari. el calendari només el creem a l'inici i l'anem utilitzant on sigui
+        calendar.setTime(date);//posem el calendari a aquesta data
+        int year = calendar.get(Calendar.YEAR);//obtenim l'any
+        int month = calendar.get(Calendar.MONTH);//obtenim el mes
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int min = calendar.get(Calendar.MINUTE);
+
+        Toast.makeText(this, String.format("%02d/%02d/%04d %02d:%02d", day, month+1, year, hour, min), Toast.LENGTH_LONG).show();
     }
 
     private void onRemoveItem(final int pos) {
